@@ -1,11 +1,30 @@
-# Database connection stub (e.g. SQLAlchemy / Mongo / SQLite setup)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 
-def get_db():
+from app.config import settings
+
+engine = create_async_engine(settings.DATABASE_URL, echo=True)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+async def get_db():
     """
-    Dependency generator for database sessions.
+    Dependency generator for async database sessions.
+    Yields an AsyncSession and closes it after the request.
     """
-    db = None
-    try:
-        yield db
-    finally:
-        pass
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
