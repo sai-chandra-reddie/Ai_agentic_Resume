@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,9 +15,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // OAuth2 uses form-urlencoded data for login
       const formData = new URLSearchParams();
-      formData.append('username', email); // OAuth2 expects 'username'
+      formData.append('username', email);
       formData.append('password', password);
 
       const response = await fetch('http://localhost:8000/api/v1/auth/login', {
@@ -33,11 +33,7 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
-      
-      // Save token to localStorage
       localStorage.setItem('token', data.access_token);
-      
-      // Redirect to upload page
       navigate('/upload');
       
     } catch (err: any) {
@@ -48,68 +44,118 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Log in to your account
-        </h2>
-      </div>
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-4">
+            <LogIn className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Sign in to continue building your AI-powered resume
+          </p>
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        {/* Card */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200">
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
+            {/* Email Input */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
                 Email address
               </label>
-              <div className="mt-1">
+              <div className="relative">
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
                 Password
               </label>
-              <div className="mt-1">
+              <div className="relative">
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
                 />
               </div>
             </div>
 
-            <div>
+            {/* Submit Button */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors duration-200"
+                className="group w-full flex items-center justify-center gap-2 py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                {loading ? 'Logging in...' : 'Log in'}
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-white rounded-full animate-spin"></div>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+                  </>
+                )}
               </button>
             </div>
           </form>
 
-          <div className="mt-6 text-center text-sm">
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-              Don't have an account? Sign up
-            </Link>
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-400">or</span>
+            </div>
           </div>
+
+          {/* Register Link */}
+          <div className="text-center">
+            <p className="text-gray-600 text-sm">
+              Don't have an account?{' '}
+              <Link 
+                to="/register" 
+                className="font-semibold text-black hover:text-gray-700 transition-colors duration-200 inline-flex items-center gap-1 group"
+              >
+                Sign up
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-gray-400 text-sm">
+            Powered by AI Resume Builder
+          </p>
         </div>
       </div>
     </div>
