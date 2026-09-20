@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.resume import Resume
 from app.schemas.resume import ResumeUploadResponse
+from app.api.deps import get_current_user
+from app.models.user import User
+
 
 router = APIRouter()
 
@@ -26,15 +29,14 @@ UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"
 async def upload_resume(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    # --- Validate MIME type ---
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid file type. Allowed: PDF, DOC, DOCX. Got: {file.content_type}",
         )
 
-    # --- Read & validate size ---
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
@@ -42,7 +44,6 @@ async def upload_resume(
             detail=f"File too large. Max size is {MAX_FILE_SIZE_MB}MB.",
         )
 
-    # --- Save file to disk ---
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     file_id = uuid.uuid4()
     ext = os.path.splitext(file.filename or "resume")[1]
@@ -52,21 +53,21 @@ async def upload_resume(
     with open(storage_path, "wb") as f:
         f.write(contents)
 
-    # --- Insert record into PostgreSQL ---
     now = datetime.now(timezone.utc)
     resume = Resume(
         id=file_id,
-        user_id=None,               # Populate once auth is added
+        user_id=str(current_user.id),
+
         filename=file.filename,
         file_type=file.content_type,
         storage_path=storage_path,
         status="pending",
-        extracted_text=None,        # Populate after text extraction step
-        parsed_profile=None,        # Populate after parsing step
+        extracted_text=None,        
+        parsed_profile=None,        
         created_at=now,
         updated_at=now,
     )
     db.add(resume)
-    await db.flush()   # assigns server-side defaults / validates before commit
+    await db.flush()   
 
     return resume

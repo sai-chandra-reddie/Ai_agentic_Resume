@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import resume
+from app.api.v1 import resume,auth
 import app.models  # noqa: F401 — ensures all models are registered with Base
 
 
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(resume.router, prefix="/api/v1/resume", tags=["Resume"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 
 
 @app.get("/")
